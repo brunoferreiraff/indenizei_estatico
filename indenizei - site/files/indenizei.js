@@ -283,6 +283,9 @@ function initLeadModal() {
   const successClose = $('#successClose');
   if (!modal) return;
 
+  let pendingWaUrl  = null;
+  let pendingService = null;
+
   function openModal() {
     modal.classList.add('is-open');
     modal.removeAttribute('aria-hidden');
@@ -298,11 +301,22 @@ function initLeadModal() {
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    pendingWaUrl   = null;
+    pendingService = null;
   }
 
   $$('[data-modal="lead"]').forEach(btn =>
     btn.addEventListener('click', e => { e.preventDefault(); openModal(); })
   );
+
+  $$('.svc-card').forEach(card => {
+    card.addEventListener('click', e => {
+      e.preventDefault();
+      pendingWaUrl   = card.dataset.waUrl;
+      pendingService = card.dataset.service ?? null;
+      openModal();
+    });
+  });
 
   backdrop?.addEventListener('click', closeModal);
   closeBtn?.addEventListener('click', closeModal);
@@ -388,9 +402,10 @@ function initLeadModal() {
     spinner.hidden         = false;
 
     const payload = {
-      name:  $('#leadName').value.trim(),
-      phone: $('#leadPhone').value.trim(),
-      email: $('#leadEmail').value.trim(),
+      name:    $('#leadName').value.trim(),
+      phone:   $('#leadPhone').value.trim(),
+      email:   $('#leadEmail').value.trim(),
+      service: pendingService ?? '',
     };
 
     try {
@@ -402,6 +417,11 @@ function initLeadModal() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       form.hidden    = true;
       success.hidden = false;
+      if (pendingWaUrl) {
+        window.open(pendingWaUrl, '_blank', 'noopener');
+        pendingWaUrl   = null;
+        pendingService = null;
+      }
     } catch (err) {
       console.error('Erro ao enviar lead:', err);
       showError($('#leadEmail'), 'emailError', 'Erro ao enviar. Tente novamente.');
