@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://indenizei.com.br/sitemap.xml
